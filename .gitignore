@@ -1,0 +1,15 @@
+# Ignore uploads directory
+/uploads/*
+# Ignore all files in uploads directory
+# Ignore specific file types in uploads directory
+/uploads/*.jpg
+/uploads/*.png
+/uploads/*.gif
+# Ignore node_modules directory
+/node_modules/*
+
+# Ignore .env files
+.env
+
+# Ignore package-lock.json
+package-lock.json

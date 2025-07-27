@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const course_controller_1 = require("../controllers/course.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const multer_course_1 = require("../utils/multer.course");
+const router = (0, express_1.Router)();
+router.post("/", auth_middleware_1.authMiddleware, multer_course_1.uploadCourse.single("thumbnail"), course_controller_1.createCourse);
+router.get("/", course_controller_1.getCourses);
+router.put("/:id", auth_middleware_1.authMiddleware, multer_course_1.uploadCourse.single("thumbnail"), course_controller_1.updateCourse);
+router.delete("/:id", auth_middleware_1.authMiddleware, course_controller_1.deleteCourse);
+exports.default = router;

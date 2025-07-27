@@ -14,7 +14,7 @@ router.post(
   createLesson
 );
 
-router.put("/:id", authMiddleware, updateLesson);
+router.put("/:id", authMiddleware, upload.array("resources", 5), updateLesson);
 router.delete("/:id", authMiddleware, deleteLesson);
 
 router.get("/:courseId",  getLessonsByCourse);

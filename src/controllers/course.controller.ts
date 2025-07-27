@@ -6,12 +6,27 @@ export const createCourse = async (req: AuthRequest, res: Response) => {
   if (req.user?.role !== "instructor")
     return res.status(403).json({ code: 403, message: "Only instructors can create courses" });
 
-  const { title, description } = req.body;
+  const { title, description, price } = req.body;
+  
+  if (!req.file) {
+    return res.status(400).json({ code: 400, message: "Thumbnail is required" });
+  }
+  if (!title || !description || !price) {
+    return res.status(400).json({ code: 400, message: "Title, description, and price are required" });
+  }
+  //if price is a type of number then check price is greater than 0
+  if (typeof price === "number" && price <= 0) {
+    return res.status(400).json({ code: 400, message: "Price must be a positive number" });
+  }
+  // now handle thumbnail upload
+  const thumbnailUrl = `/uploads/courses/${req.file.filename}`;
   try {
     const course = await Course.create({
       title,
-      description, 
+      description,
+      price,
       instructor: req.user.id,
+      thumbnail: thumbnailUrl,
     });
     res.status(201).json({ code: 201, message: "Course created", data: course });
   } catch (err) {
@@ -36,7 +51,7 @@ export const updateCourse = async (req: AuthRequest, res: Response) => {
     return res.status(403).json({ code: 403, message: "Only instructors can update courses" });
   }
 
-  const { title, description } = req.body;
+  const { title, description, price } = req.body;
 
   try {
     const course = await Course.findById(id);
@@ -48,6 +63,11 @@ export const updateCourse = async (req: AuthRequest, res: Response) => {
 
     course.title = title || course.title;
     course.description = description || course.description;
+    course.price = price || course.price;
+
+    if (req.file) {
+      course.thumbnail = `/uploads/courses/${req.file.filename}` || course.thumbnail;
+    }
     await course.save();
 
     res.status(200).json({ code: 200, message: "Course updated", data: course });

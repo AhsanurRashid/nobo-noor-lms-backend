@@ -7,6 +7,7 @@ import courseRoutes from "./routes/course.routes";
 import lessonRoutes from "./routes/lesson.routes";
 import enrollmentRoutes from "./routes/enrollment.routes";
 import userRoutes from "./routes/user.routes";
+import sliderRoutes from "./routes/sliders.routes";
 
 dotenv.config();
 const app = express();
@@ -22,6 +23,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/sliders", sliderRoutes);
 
 connectDB().then(() => {
     app.listen(PORT, () => {

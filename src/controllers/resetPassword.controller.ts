@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 // import bcrypt from "bcrypt"; // Uncomment if you're using bcrypt for hashing
 
 export const resetPassword = async (req: Request, res: Response) => {
@@ -23,9 +24,8 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ code: 400, message: "Invalid or expired token" });
     }
 
-    // ⚠️ Hash the password before saving (this is just placeholder)
-    // user.password = await bcrypt.hash(password, 10); // If using bcrypt
-    user.password = password; // <-- Replace this line after adding hashing middleware or manual hashing
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword 
 
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;

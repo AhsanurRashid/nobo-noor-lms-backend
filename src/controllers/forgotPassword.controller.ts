@@ -1,24 +1,43 @@
-import crypto from "crypto"; 
+import crypto from "crypto";
 import User from "../models/User";
 import { Request, Response } from "express";
 import sendEmail from "../utils/send.email";
 
 export const forgotPassword = async (req: Request, res: Response) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
+    if (!email) {
+      return res.status(400).json({ code: 400, message: "Email is required" });
+    }
 
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  const resetTokenExpiry = Date.now() + 1000 * 60 * 15; // 15 minutes
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ code: 404, message: "User not found" });
+    }
 
-  user.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-  user.resetPasswordExpires = resetTokenExpiry;
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = new Date(Date.now() + 1000 * 60 * 15); // 15 minutes
 
-  await user.save();
+    user.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    user.resetPasswordExpires = resetTokenExpiry;
 
-  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-  await sendEmail(user.email, "Password Reset", `Reset your password here: ${resetUrl}`);
+    await user.save();
 
-  res.status(200).json({ message: "Reset email sent" });
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const emailBody = `Click the following link to reset your password:\n\n${resetUrl}\n\nThis link will expire in 15 minutes.`;
+
+    await sendEmail(user.email, "Password Reset Request", emailBody);
+
+    return res.status(200).json({ code: 200, message: "Reset email sent successfully" });
+  } catch (err) {
+    console.error("Error in forgotPassword:", err);
+    return res.status(500).json({
+      code: 500,
+      message: "Internal Server Error",
+      error: (err as Error).message || err,
+    });
+  }
 };
+

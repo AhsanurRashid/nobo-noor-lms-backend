@@ -6,7 +6,7 @@ export interface IUser extends Document {
   password: string;
   role: "student" | "instructor" | "admin";
   resetPasswordToken?: string;
-  resetPasswordExpires?: number;
+  resetPasswordExpires?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -19,8 +19,8 @@ const userSchema = new Schema<IUser>(
       enum: ["student", "instructor", "admin"],
       default: "student",
     },
-    resetPasswordToken: String,
-    resetPasswordExpires: Number,
+    resetPasswordToken: { type: String, index: true },
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

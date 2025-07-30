@@ -30,7 +30,16 @@ export const resetPassword = async (req: Request, res: Response) => {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 
-    await user.save();
+    await user.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          password: hashedPassword,
+          resetPasswordToken: undefined,
+          resetPasswordExpires: undefined,
+        },
+      }
+    );
 
     return res.status(200).json({ code: 200, message: "Password reset successful" });
   } catch (err) {

@@ -2,6 +2,7 @@ import { Response } from "express";
 import User from "../models/User";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import bcrypt from "bcryptjs";
+import Course from "../models/Course";
 
 // Create
 export const createUser = async (req: AuthRequest, res: Response) => {
@@ -127,6 +128,7 @@ export const getUserCountByRole = async (req: AuthRequest, res: Response) => {
     const adminCount = await User.countDocuments({ role: "admin" });
     const studentCount = await User.countDocuments({ role: "student" });
     const instructorCount = await User.countDocuments({ role: "instructor" });
+    const courseCount = await Course.countDocuments();
 
     res.status(200).json({
       code: 200,
@@ -134,7 +136,8 @@ export const getUserCountByRole = async (req: AuthRequest, res: Response) => {
       counts: {
         admin: adminCount,
         student: studentCount,
-        instructor: instructorCount
+        instructor: instructorCount,
+        course: courseCount
       }
     });
   } catch (err) {

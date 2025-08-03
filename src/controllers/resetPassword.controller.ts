@@ -25,21 +25,11 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword 
-
+    user.password = hashedPassword
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 
-    await user.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          password: hashedPassword,
-          resetPasswordToken: undefined,
-          resetPasswordExpires: undefined,
-        },
-      }
-    );
+    await user.save();
 
     return res.status(200).json({ code: 200, message: "Password reset successful" });
   } catch (err) {

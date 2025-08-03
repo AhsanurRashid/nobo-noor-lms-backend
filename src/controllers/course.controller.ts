@@ -34,13 +34,44 @@ export const createCourse = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getCourses = async (_: Request, res: Response) => {
-    try {
-        const courses = await Course.find().populate("instructor", "name email");
-        res.json({ code: 200, message: "Courses fetched successfully", data: courses });
-    } catch (err) {
-        res.status(500).json({ code: 500, message: "Server error", error: err });
-    }
+export const getCourses = async (req: Request, res: Response) => {
+  const search = req.query.search?.toString() || "";
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
+
+  try {
+    const searchFilter = search
+      ? {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+    
+    const [courses, total] = await Promise.all([
+      Course.find(searchFilter)
+        .skip(skip)
+        .limit(limit)
+        .populate("instructor", "name email"),
+      Course.countDocuments(searchFilter),
+    ]);
+    
+    res.status(200).json({ 
+      code: 200,
+      message: "Courses fetched successfully", 
+      data: courses, 
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "Server error", error: err });
+  }
 };
 
 //update course

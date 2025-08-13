@@ -71,7 +71,7 @@ const getUserById = async (req, res) => {
         const user = await User_1.default.findById(userId);
         if (!user)
             return res.status(404).json({ code: 404, message: "User not found" });
-        res.status(200).json({ code: 200, message: "User fetched successfully", user });
+        res.status(200).json({ code: 200, message: "User fetched successfully", user: { _id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone } });
     }
     catch (err) {
         res.status(500).json({ code: 500, message: "Server error", error: err });
@@ -84,12 +84,12 @@ const updateUser = async (req, res) => {
     if (req.user?.role !== "admin" && String(req.user?.id) !== userId) {
         return res.status(403).json({ code: 403, message: "Not authorized to update this user" });
     }
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, role, phone } = req.body;
     try {
-        const user = await User_1.default.findByIdAndUpdate(userId, { name, email, password, role, phone }, { new: true });
+        const user = await User_1.default.findByIdAndUpdate(userId, { name, email, role, phone }, { new: true });
         if (!user)
             return res.status(404).json({ code: 404, message: "User not found" });
-        res.status(200).json({ code: 200, message: "User updated successfully", user });
+        res.status(200).json({ code: 200, message: "User updated successfully", user: { _id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone } });
     }
     catch (err) {
         res.status(500).json({ code: 500, message: "Server error", error: err });

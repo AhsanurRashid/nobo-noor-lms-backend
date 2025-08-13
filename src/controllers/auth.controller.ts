@@ -8,15 +8,15 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const register = async (req: Request, res: Response) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, phone } = req.body;
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ code: 400, message: "Email already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashedPassword, role });
+    const user = await User.create({ name, email, password: hashedPassword, role, phone });
 
-    res.status(201).json({ code: 201, message: "User registered", user: { id: user._id, email: user.email } });
+    res.status(201).json({ code: 201, message: "User registered", user: { id: user._id, name: user.name, email: user.email, phone: user.phone } });
   } catch (err) {
     res.status(500).json({ code: 500, message: "Server error", error: err });
   }

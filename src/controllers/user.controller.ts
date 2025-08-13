@@ -88,10 +88,10 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     return res.status(403).json({ code: 403, message: "Not authorized to update this user" });
   }
 
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, phone } = req.body;
 
   try {
-    const user = await User.findByIdAndUpdate(userId, { name, email, password, role }, { new: true });
+    const user = await User.findByIdAndUpdate(userId, { name, email, password, role, phone }, { new: true });
     if (!user) return res.status(404).json({ code: 404, message: "User not found" });
 
     res.status(200).json({ code: 200, message: "User updated successfully", user });

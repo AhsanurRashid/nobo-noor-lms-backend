@@ -74,7 +74,7 @@ export const getUserById = async (req: AuthRequest, res: Response) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ code: 404, message: "User not found" });
 
-    res.status(200).json({ code: 200, message: "User fetched successfully", user });
+    res.status(200).json({ code: 200, message: "User fetched successfully", user: { _id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone }  });
   } catch (err) {
     res.status(500).json({ code: 500, message: "Server error", error: err });
   }
@@ -94,7 +94,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     const user = await User.findByIdAndUpdate(userId, { name, email, role, phone }, { new: true });
     if (!user) return res.status(404).json({ code: 404, message: "User not found" });
 
-    res.status(200).json({ code: 200, message: "User updated successfully", user });
+    res.status(200).json({ code: 200, message: "User updated successfully", user: { _id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone } });
   } catch (err) {
     res.status(500).json({ code: 500, message: "Server error", error: err });
   }

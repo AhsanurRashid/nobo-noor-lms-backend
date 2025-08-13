@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import Course from "../models/Course";
+import mongoose from "mongoose";
 
 export const createCourse = async (req: AuthRequest, res: Response) => {
   if (req.user?.role !== "instructor" && req.user?.role !== "admin") {
-    return res.status(403).json({ code: 403, message: "Only instructors can create courses" });
+    return res.status(403).json({ code: 403, message: "Only admin and instructors can create courses" });
   }
 
   const { title, description, price } = req.body;
@@ -79,8 +80,8 @@ export const getCourses = async (req: Request, res: Response) => {
 export const updateCourse = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
-  if (req.user?.role !== "instructor") {
-    return res.status(403).json({ code: 403, message: "Only instructors can update courses" });
+  if (req.user?.role !== "instructor" && req.user?.role !== "admin") {
+    return res.status(403).json({ code: 403, message: "Only admin and instructors can update courses" });
   }
 
   const { title, description, price } = req.body;
@@ -113,8 +114,8 @@ export const updateCourse = async (req: AuthRequest, res: Response) => {
 export const deleteCourse = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
-  if (req.user?.role !== "instructor") {
-    return res.status(403).json({ code: 403, message: "Only instructors can delete courses" });
+  if (req.user?.role !== "instructor" && req.user?.role !== "admin") {
+    return res.status(403).json({ code: 403, message: "Only instructors and admins can delete courses" });
   }
 
   try {
@@ -131,3 +132,39 @@ export const deleteCourse = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ code: 500, message: "Server error", error: err });     
   }
 }
+
+export const getCourseById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  // 1️⃣ Validate MongoDB ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ code: 400, message: "Invalid course ID" });
+  }
+
+  try {
+    // 2️⃣ Find course and populate related fields
+    const course = await Course.findById(id)
+      .populate("instructor", "name email")
+      .populate("students", "name email")
+      .populate("lessons", "title description");
+
+    // 3️⃣ Handle not found
+    if (!course) {
+      return res.status(404).json({ code: 404, message: "Course not found" });
+    }
+
+    // 4️⃣ Success response
+    res.status(200).json({
+      code: 200,
+      message: "Course fetched successfully",
+      data: course,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      code: 500,
+      message: "Server error",
+      error: err instanceof Error ? err.message : err,
+    });
+  }
+};

@@ -3,8 +3,9 @@ import { AuthRequest } from "../middlewares/auth.middleware";
 import Course from "../models/Course";
 
 export const createCourse = async (req: AuthRequest, res: Response) => {
-  if (req.user?.role !== "instructor")
+  if (req.user?.role !== "instructor" && req.user?.role !== "admin") {
     return res.status(403).json({ code: 403, message: "Only instructors can create courses" });
+  }
 
   const { title, description, price } = req.body;
   

@@ -36,10 +36,38 @@ const createCourse = async (req, res) => {
     }
 };
 exports.createCourse = createCourse;
-const getCourses = async (_, res) => {
+const getCourses = async (req, res) => {
+    const search = req.query.search?.toString() || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-        const courses = await Course_1.default.find().populate("instructor", "name email");
-        res.json({ code: 200, message: "Courses fetched successfully", data: courses });
+        const searchFilter = search
+            ? {
+                $or: [
+                    { title: { $regex: search, $options: "i" } },
+                    { description: { $regex: search, $options: "i" } },
+                ],
+            }
+            : {};
+        const [courses, total] = await Promise.all([
+            Course_1.default.find(searchFilter)
+                .skip(skip)
+                .limit(limit)
+                .populate("instructor", "name email"),
+            Course_1.default.countDocuments(searchFilter),
+        ]);
+        res.status(200).json({
+            code: 200,
+            message: "Courses fetched successfully",
+            data: courses,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            }
+        });
     }
     catch (err) {
         res.status(500).json({ code: 500, message: "Server error", error: err });

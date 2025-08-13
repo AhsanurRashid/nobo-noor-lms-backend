@@ -5,10 +5,13 @@ const userSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
+    phone: { type: String, required: true },
     role: {
         type: String,
         enum: ["student", "instructor", "admin"],
         default: "student",
     },
+    resetPasswordToken: { type: String, index: true },
+    resetPasswordExpires: Date,
 }, { timestamps: true });
 exports.default = (0, mongoose_1.model)("User", userSchema);

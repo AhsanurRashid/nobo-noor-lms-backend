@@ -6,19 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserCountByRole = exports.deleteUser = exports.updateUser = exports.getUserById = exports.getUsers = exports.createUser = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const Course_1 = __importDefault(require("../models/Course"));
 // Create
 const createUser = async (req, res) => {
     if (req.user?.role !== "admin") {
         return res.status(403).json({ code: 403, message: "Only admins can create users" });
     }
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone } = req.body;
     try {
         const existingUser = await User_1.default.findOne({ email });
         if (existingUser)
             return res.status(400).json({ message: "Email already exists" });
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-        const user = await User_1.default.create({ name, email, password: hashedPassword, role });
-        res.status(201).json({ code: 201, message: "User created successfully", user: { id: user._id, email: user.email, role: user.role } });
+        const user = await User_1.default.create({ name, email, password: hashedPassword, role, phone });
+        res.status(201).json({ code: 201, message: "User created successfully", user: { id: user._id, email: user.email, role: user.role, phone: user.phone } });
     }
     catch (err) {
         res.status(500).json({ code: 500, message: "Error creating user", error: err });
@@ -30,9 +31,30 @@ const getUsers = async (req, res) => {
     if (req.user?.role !== "admin") {
         return res.status(403).json({ code: 403, message: "Only admins can view users" });
     }
+    const search = req.query.search?.toString() || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-        const users = await User_1.default.find();
-        res.status(200).json({ code: 200, message: "Users fetched successfully", users });
+        const searchFilter = search
+            ? {
+                $or: [
+                    { name: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                    { phone: { $regex: search, $options: "i" } },
+                ],
+            }
+            : {};
+        const [users, total] = await Promise.all([
+            User_1.default.find(searchFilter).skip(skip).limit(limit).select("-password"),
+            User_1.default.countDocuments(searchFilter),
+        ]);
+        res.status(200).json({ code: 200, message: "Users fetched successfully", users, pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            } });
     }
     catch (err) {
         res.status(500).json({ code: 500, message: "Server error", error: err });
@@ -62,9 +84,9 @@ const updateUser = async (req, res) => {
     if (req.user?.role !== "admin" && String(req.user?.id) !== userId) {
         return res.status(403).json({ code: 403, message: "Not authorized to update this user" });
     }
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone } = req.body;
     try {
-        const user = await User_1.default.findByIdAndUpdate(userId, { name, email, password, role }, { new: true });
+        const user = await User_1.default.findByIdAndUpdate(userId, { name, email, password, role, phone }, { new: true });
         if (!user)
             return res.status(404).json({ code: 404, message: "User not found" });
         res.status(200).json({ code: 200, message: "User updated successfully", user });
@@ -100,13 +122,15 @@ const getUserCountByRole = async (req, res) => {
         const adminCount = await User_1.default.countDocuments({ role: "admin" });
         const studentCount = await User_1.default.countDocuments({ role: "student" });
         const instructorCount = await User_1.default.countDocuments({ role: "instructor" });
+        const courseCount = await Course_1.default.countDocuments();
         res.status(200).json({
             code: 200,
             message: "User counts fetched successfully",
             counts: {
                 admin: adminCount,
                 student: studentCount,
-                instructor: instructorCount
+                instructor: instructorCount,
+                course: courseCount
             }
         });
     }

@@ -12,6 +12,7 @@ const course_routes_1 = __importDefault(require("./routes/course.routes"));
 const lesson_routes_1 = __importDefault(require("./routes/lesson.routes"));
 const enrollment_routes_1 = __importDefault(require("./routes/enrollment.routes"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
+const sliders_routes_1 = __importDefault(require("./routes/sliders.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,7 @@ app.use("/api/courses", course_routes_1.default);
 app.use("/api/lessons", lesson_routes_1.default);
 app.use("/api/enrollments", enrollment_routes_1.default);
 app.use("/api/users", user_routes_1.default);
+app.use("/api/sliders", sliders_routes_1.default);
 (0, db_1.default)().then(() => {
     app.listen(PORT, () => {
         console.log(`>> Server running on port ${PORT} >>`);
